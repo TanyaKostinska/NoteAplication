@@ -1,4 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:notes_aplication/add_item_to_list_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -8,6 +11,48 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  TextEditingController nameController = TextEditingController();
+  String stringLocalNote = '';
+  List<String> stringList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getNote();
+  }
+
+  Future<void> saveNote() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('noteString', nameController.text);
+    nameController.clear();
+  }
+
+  Future<void> getNote() async {
+    Future.delayed(
+      const Duration(
+        seconds: 1,
+      ),
+    );
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      stringLocalNote = prefs.getString('noteString') ?? '';
+      stringList = prefs.getStringList('List') ?? [];
+    });
+  }
+
+  Future<void> saveToList() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('List', stringList);
+  }
+
+  void addToList() {
+    setState(() {
+      stringList.add(nameController.text);
+    });
+    saveToList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,17 +68,50 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: const Column(
-        children: [
-          SizedBox(height: 20),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            TextField(
+              controller: nameController,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Center(
+              child: ElevatedButton(
+                onPressed: addToList,
+                child: const Text('Add'),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: stringList.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Text(stringList[index]),
+                    );
+                  }),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pop(context);
+          navigator(context);
         },
         child: const Icon(Icons.add_circle_outline),
       ),
     );
   }
+}
+
+Future<void> navigator(BuildContext context) async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const AddItemToListPage()),
+  );
 }
