@@ -53,6 +53,22 @@ class _HomePageState extends State<HomePage> {
     saveToList();
   }
 
+  Future<void> remove(index) async {
+    setState(() {
+      stringList.removeAt(index);
+    });
+  }
+
+  Future<void> navigator(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddItemToListPage()),
+    );
+    setState(() {
+      stringList.add(result);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,6 +92,12 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 20),
             TextField(
               controller: nameController,
+              decoration: const InputDecoration(
+                suffixIcon: Icon(Icons.add_circle_outline),
+              ),
+              onSubmitted: (String value) {
+                debugPrint(value);
+              },
             ),
             const SizedBox(
               height: 10,
@@ -92,7 +114,19 @@ class _HomePageState extends State<HomePage> {
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Text(stringList[index]),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(stringList[index]),
+                          Text(index.toString()),
+                          ElevatedButton(
+                            onPressed: () {
+                              remove(index);
+                            },
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
                     );
                   }),
             ),
@@ -107,11 +141,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-Future<void> navigator(BuildContext context) async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const AddItemToListPage()),
-  );
 }
